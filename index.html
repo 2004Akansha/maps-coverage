@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Map Coverage</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app" class="app">
+    <iframe id="frame" class="frame" title="Google map" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    <aside id="panel" class="panel" aria-label="Coverage journal">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Embedded map journal</p>
+          <h1>Map Coverage</h1>
+        </div>
+        <button id="panelToggle" type="button" class="text-button">Hide</button>
+      </div>
+
+      <div class="project-bar">
+        <label class="field" for="projectSelect">City</label>
+        <div class="key-row">
+          <select id="projectSelect" aria-label="City"></select>
+          <button id="newProjectBtn" type="button">New city</button>
+        </div>
+        <form id="newProjectForm" hidden>
+          <label class="field" for="newProjectName">New city</label>
+          <div class="key-row">
+            <input id="newProjectName" type="text" placeholder="Milan" maxlength="60" required />
+            <button type="submit">Open</button>
+            <button id="cancelProjectBtn" type="button">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="switches">
+        <button id="recordingToggle" type="button" class="switch is-on" aria-pressed="true">Recording</button>
+      </div>
+
+      <p id="statusLine" class="status" role="status">Use the pad to move the embed. The journal stores each view.</p>
+      <p class="note">Drags inside the map frame stay inside Google and are not recorded. Use the pad when you want the journal to follow you.</p>
+      <p id="storageNote" class="note" hidden></p>
+
+      <div class="pad" aria-label="Move and zoom">
+        <span></span>
+        <button type="button" data-pan="n" aria-label="Pan north">N</button>
+        <span></span>
+        <button type="button" data-pan="w" aria-label="Pan west">W</button>
+        <button id="zoomIn" type="button" aria-label="Zoom in">+</button>
+        <button type="button" data-pan="e" aria-label="Pan east">E</button>
+        <span></span>
+        <button type="button" data-pan="s" aria-label="Pan south">S</button>
+        <button id="zoomOut" type="button" aria-label="Zoom out">−</button>
+      </div>
+
+      <div class="switches">
+        <button id="mapTypeRoad" type="button" class="switch is-on" aria-pressed="true">Map</button>
+        <button id="mapTypeSat" type="button" class="switch" aria-pressed="false">Satellite</button>
+      </div>
+
+      <section class="instruments" aria-label="Current view">
+        <div><span>Latitude</span><strong id="statLat">—</strong></div>
+        <div><span>Longitude</span><strong id="statLng">—</strong></div>
+        <div><span>Zoom</span><strong id="statZoom">—</strong></div>
+        <div><span>Map</span><strong id="statType">—</strong></div>
+        <div class="wide"><span>View size</span><strong id="statSpan">—</strong></div>
+        <div class="wide"><span>Screen bounds</span><strong id="statBounds">—</strong></div>
+      </section>
+
+      <canvas id="minimap" class="minimap" width="640" height="240" aria-label="Covered blocks"></canvas>
+      
+      <section class="block-section" aria-labelledby="selectedBlockHeading">
+  <h2 id="selectedBlockHeading">Selected Block</h2>
+
+  <p id="selectedBlockId" role="status">No block selected</p>
+
+  <p id="selectedBlockBounds" class="note">
+    Select a block to see its geographic boundaries.
+  </p>
+
+  <button id="selectCurrentBlock" type="button">
+    Select Block at Map Center
+  </button>
+</section>
+
+      
+<section class="block-business-section" aria-labelledby="addBusinessHeading">
+  <h2 id="addBusinessHeading">Add Business to Selected Block</h2>
+
+  <p id="businessFormHint" class="note">
+    Select a block first. Then enter the business details manually.
+  </p>
+
+  <form id="blockBusinessForm" hidden>
+    <label class="field" for="businessName">Business name *</label>
+    <input
+      id="businessName"
+      type="text"
+      maxlength="150"
+      placeholder="Example Cafe"
+      required
+    />
+
+    <label class="field" for="businessMapsUrl">Google Maps listing URL *</label>
+    <input
+      id="businessMapsUrl"
+      type="url"
+      placeholder="https://www.google.com/maps/..."
+      required
+    />
+
+    <button id="openBusinessMaps" type="button">
+      Open Google Maps
+    </button>
+
+    <label class="field" for="businessAddress">Address</label>
+    <input
+      id="businessAddress"
+      type="text"
+      maxlength="300"
+      placeholder="Street, area, city"
+    />
+
+    <div class="business-coordinate-grid">
+      <div>
+        <label class="field" for="businessLat">Latitude</label>
+        <input
+          id="businessLat"
+          type="number"
+          min="-90"
+          max="90"
+          step="any"
+          placeholder="21.1458"
+        />
+      </div>
+
+      <div>
+        <label class="field" for="businessLng">Longitude</label>
+        <input
+          id="businessLng"
+          type="number"
+          min="-180"
+          max="180"
+          step="any"
+          placeholder="79.0882"
+        />
+      </div>
+    </div>
+
+    <label class="field" for="businessCategory">Business category</label>
+    <input
+      id="businessCategory"
+      type="text"
+      maxlength="100"
+      placeholder="Restaurant, cafe, shop..."
+    />
+
+    <div class="business-coordinate-grid">
+      <div>
+        <label class="field" for="businessRating">Google rating</label>
+        <input
+          id="businessRating"
+          type="number"
+          min="0"
+          max="5"
+          step="0.1"
+          placeholder="4.5"
+        />
+      </div>
+
+      <div>
+        <label class="field" for="businessReviewCount">Review count</label>
+        <input
+          id="businessReviewCount"
+          type="number"
+          min="0"
+          step="1"
+          placeholder="120"
+        />
+      </div>
+    </div>
+
+    <label class="field" for="businessNotes">Notes</label>
+    <textarea
+      id="businessNotes"
+      rows="3"
+      maxlength="1000"
+      placeholder="Any notes about this business"
+    ></textarea>
+
+    <button type="submit">Save Business to Block</button>
+  </form>
+
+  <div class="block-business-list-heading">
+    <h3>Businesses in this block</h3>
+    <span id="blockBusinessCount">0 businesses</span>
+  </div>
+
+  <div id="blockBusinessList" class="list">
+    <p class="note">Select a block to see its businesses.</p>
+  </div>
+  
+<div class="review-import">
+  <h3>Import Reviews</h3>
+
+  <label class="field" for="reviewBusinessSelect">
+    Business
+  </label>
+  <select id="reviewBusinessSelect" required>
+    <option value="">Select a business</option>
+  </select>
+
+  <label class="field" for="reviewFile">
+    Extension export (.csv or .json)
+  </label>
+  <input
+    id="reviewFile"
+    type="file"
+    accept=".csv,.json,application/json,text/csv"
+  />
+
+  <button id="importReviewsBtn" type="button">
+    Preview and Import Reviews
+  </button>
+
+  <p id="reviewImportStatus" class="note" role="status">
+    Select a business and choose an exported review file.
+  </p>
+
+  <div id="reviewPreview" class="list"></div>
+</div>
+
+</section>
+
+
+      <section class="stats" aria-label="Journal totals">
+        <div><span>Blocks</span><strong id="statCells">0</strong></div>
+        <div><span>Area</span><strong id="statArea">0 km²</strong></div>
+        <div><span>Samples</span><strong id="statSamples">0</strong></div>
+        <div><span>Places</span><strong id="statPlaces">0</strong></div>
+        <div><span>In view</span><strong id="statInView">0</strong></div>
+      </section>
+
+      <label class="slider" for="minZoom">
+        <span>Minimum zoom to mark a block <strong id="minZoomValue">16</strong></span>
+        <input id="minZoom" type="range" min="13" max="18" step="1" value="16" />
+      </label>
+
+      <ul class="legend">
+        <li><i class="swatch wash"></i> Camera covered this block</li>
+        <li><i class="swatch gold"></i> Places captured</li>
+        <li><i class="swatch coral"></i> Capture still partial</li>
+      </ul>
+
+      <form id="searchForm" class="search">
+        <label class="field" for="searchInput">Go to a place</label>
+        <div class="key-row">
+          <input id="searchInput" type="search" placeholder="City, address, or business" />
+          <button type="submit">Go</button>
+        </div>
+      </form>
+
+      <div class="actions">
+        <button id="locateBtn" type="button">My location</button>
+        <button id="exportJsonBtn" type="button">Export JSON</button>
+        <button id="exportCsvBtn" type="button">Export CSV</button>
+        
+        <button id="exportBusinessesBtn" type="button">
+          Export Businesses CSV
+        </button>
+
+        <button id="exportReviewsBtn" type="button">
+          Export Reviews CSV
+        </button>
+
+        <button id="clearBtn" type="button" class="danger">Clear journal</button>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button id="tabPlaces" type="button" role="tab" aria-selected="true">Places</button>
+        <button id="tabTrail" type="button" role="tab" aria-selected="false">Trail</button>
+      </div>
+
+      <div id="placesPane">
+        <label class="field" for="placeFilter">Filter places in this view</label>
+        <input id="placeFilter" type="search" placeholder="Name or type" />
+        <div id="placeList" class="list"></div>
+      </div>
+      <div id="trailPane" hidden>
+        <div id="trailList" class="list"></div>
+      </div>
+    </aside>
+  </main>
+
+  <script src="coverage.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
